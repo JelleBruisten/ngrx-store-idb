@@ -15,4 +15,4 @@ const routes: Routes = [{
     RouterModule.forChild(routes)
   ]
 })
-export class LazyRouteModule { }
+export class LazyRouteModule {}

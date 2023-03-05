@@ -1,27 +1,27 @@
-# NgrxStoreIdbTest
+# @ngrx/store with indexed db
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.0.4.
+This is just a proof of concept for synchronizing @ngrx/store with indexed-db 
 
-## Development server
+- within this example if you would increment the counter and refresh the page the counter should be the same value
+- Similarly for the lazy loaded route/feature this should be the case
+- It should also synchronize back when you are in another tab and changed to another tab
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+One limitation of this small example is that if the lazy route is not loaded yet, and the store is not initialized for that feature.
+You will overwrite the lazy state if you execute a action before the lazy route is initialized
 
-## Code scaffolding
+example:
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+- root counter = 5, lazy counter = 2
+- go to home page
+- refresh
+- go to lazy route
+- verify the counter is 2
 
-## Build
+all good this case, now if we do the same:
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+- root counter = 5, lazy counter = 2
+- go to home page
+- refresh
+- **press increment button**
+- go to lazy route
+- **the counter shown is now 0, while the indexed-db is having 2 ( on refresh it will be correct again...)**
