@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { State, Store } from '@ngrx/store';
-import { Observable, map } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { decrement, increment, reset } from '../state/actions';
 import { state } from '@angular/animations';
 
@@ -14,7 +14,7 @@ export class HomeComponent {
  
   state = inject(State);
   constructor(private store: Store<{ root: { counter: number} }>) {
-    this.count$ = store.select('root').pipe(map((x) => x.counter));
+    this.count$ = store.select('root').pipe(map((x) => x.counter), tap(console.log));
   }
  
   increment() {

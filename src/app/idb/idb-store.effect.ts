@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@angular/core";
 import { Actions, OnInitEffects, createEffect, ofType } from "@ngrx/effects";
-import { Action, ActionCreator, UPDATE } from "@ngrx/store";
+import { Action, ActionCreator, ReducerManager, UPDATE } from "@ngrx/store";
 import { initAction, synchronizeAction } from './idb-store.actions';
 import { EMPTY, Observable, filter, fromEvent, switchMap, tap } from "rxjs";
 import { IdbStoreConfig, idbStoreConfig } from "./idb-store.config";
@@ -8,15 +8,16 @@ import { get as idbGet, keys as idbKeys } from "idb-keyval";
 import { DOCUMENT } from "@angular/common";
 
 @Injectable()
-export class IdbStoreEffect implements OnInitEffects {
+export class IdbStoreEffect {
 
-  init$ = createEffect(() => {
-    return this.actions$.pipe(
-      ofType(initAction),
+  // whenever a new reducer has been added, synchronize 
+  reducersChanged$ = createEffect(() => {
+    return this.reducerManager.pipe(
       switchMap(() => this.createSynchronizeAction())
     )
-  });
+  })
 
+  // whenever we go from unfocused to focused synchronize
   visibilityChange$ = createEffect(() => fromEvent(this.document, 'visibilitychange').pipe(
     switchMap(() => {
       if(this.document.hidden) {
@@ -27,9 +28,8 @@ export class IdbStoreEffect implements OnInitEffects {
   ));
 
   constructor(
-    private actions$: Actions, 
-    // @Inject(idbStoreConfig) private config: IdbStoreConfig,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private document: Document,
+    private reducerManager: ReducerManager
   ){}
 
   createSynchronizeAction() {
@@ -61,9 +61,5 @@ export class IdbStoreEffect implements OnInitEffects {
         });
       });
     })
-  }
-
-  ngrxOnInitEffects(): Action {
-    return initAction()
   }
 }
