@@ -13,16 +13,7 @@ export function idbMetaReducer(config: IdbStoreConfig, document: Document){
           ...(action as ReturnType<typeof synchronizeAction>).state
         };
       } else {
-        newState = reducer(state, action); 
-
-        // on specific actions like INIT, root_effects and few others we don't want to set the idb state
-        if(!(action.type.includes('@ngrx') || action.type === initAction.type)) {          
-          if(config.synchronizeWhenDocumentHidden || !document.hidden) {
-            for(const [key, value] of Object.entries(newState as object)) {
-              idbSet(key, value);  
-            }            
-          }
-        }        
+        newState = reducer(state, action);        
       }
       return newState;
     };

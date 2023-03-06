@@ -21,6 +21,8 @@ export interface IdbStoreConfig {
   broadcastChannelReceiveDebounceTime: number;
   skipMessagesWhileHidden: boolean;
   skipNotifyWhileHidden: boolean;
+
+  writeDebounceTime: number;
 }
 
 export const idbStoreConfig = new InjectionToken<IdbStoreConfig>('IdbStoreConfig');
@@ -36,5 +38,6 @@ export const defaultConfig: IdbStoreConfig = {
   broadcastChannelNotifyThrottleTime: 500,
   broadcastChannelReceiveDebounceTime: 500,
   skipMessagesWhileHidden: false,
-  skipNotifyWhileHidden: true
+  skipNotifyWhileHidden: true,
+  writeDebounceTime: 500
 };
