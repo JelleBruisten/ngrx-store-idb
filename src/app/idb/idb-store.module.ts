@@ -6,7 +6,7 @@ import { DOCUMENT } from "@angular/common";
 
 @NgModule()
 export class IdbStoreModule {
-  static forRoot(inputConfig?: IdbStoreConfig): ModuleWithProviders<IdbStoreModule> {     
+  static forRoot(inputConfig?: Partial<IdbStoreConfig>): ModuleWithProviders<IdbStoreModule> {     
 
     const config = {
       ... defaultConfig,

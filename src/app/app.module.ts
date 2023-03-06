@@ -19,7 +19,7 @@ import { IdbStoreEffect } from './idb/idb-store.effect';
     BrowserModule,
     AppRoutingModule,    
     StoreModule.forRoot({
-      root: counterReducer
+      counter: counterReducer
     }, 
     {
       // metaReducers: metaReducers

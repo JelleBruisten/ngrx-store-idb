@@ -13,8 +13,8 @@ export class HomeComponent {
   count$: Observable<number>
  
   state = inject(State);
-  constructor(private store: Store<{ root: { counter: number} }>) {
-    this.count$ = store.select('root').pipe(map((x) => x.counter), tap(console.log));
+  constructor(private store: Store<{ counter: { counter: number} }>) {
+    this.count$ = store.select('counter').pipe(map((x) => x.counter));
   }
  
   increment() {

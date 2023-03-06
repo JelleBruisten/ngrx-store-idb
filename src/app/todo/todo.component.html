@@ -1,0 +1,14 @@
+<h1>Todo's</h1>
+
+<div>Last Update: {{ lastUpdate$ | async | date: 'medium' }}</div>
+<ul>
+  <li *ngFor="let todo of todoList$ | async; let index = index">
+    {{ todo }} <button (click)="removeTodo(index)">X</button>
+  </li>
+</ul>
+<textarea #todo></textarea>
+<button (click)="addTodo(todo.value); todo.value = ''">Add</button>
+
+
+<hr/>
+<button (click)="reset()">Reset Todo</button>

@@ -8,8 +8,8 @@ const routes: Routes = [
     component: HomeComponent,
   },
   {
-    path: 'lazy',
-    loadChildren: () => import('./lazy-route/lazy-route.module').then(m => m.LazyRouteModule)
+    path: 'todo',
+    loadChildren: () => import('./todo/todo.module').then(m => m.TodoModule)
   },
   {
     path: '**',
