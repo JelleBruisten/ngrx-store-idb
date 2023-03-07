@@ -3,7 +3,10 @@ import { Actions, concatLatestFrom, createEffect } from "@ngrx/effects";
 import { Action, ReducerManager, State, Store } from "@ngrx/store";
 import { actionPrefix, initAction, synchronizeAction } from './idb-store.actions';
 import { EMPTY, Observable, debounceTime, filter, fromEvent, map, skip, startWith, switchMap, tap, throttleTime } from "rxjs";
-import { get as idbGet, keys as idbKeys, set as idbSet } from "idb-keyval";
+import { 
+  getMany as idbGetMany,
+  setMany as idbSetMany 
+} from "idb-keyval";
 import { DOCUMENT } from "@angular/common";
 import { IdbStoreConfig, idbStoreConfig } from "./idb-store.config";
 
@@ -51,8 +54,6 @@ export class IdbStoreEffect {
       if(this.config.skipMessagesWhileHidden && !visible) {
         return EMPTY;
       }
-
-      console.log(event, visible);
       return this.createSynchronizeAction();
     })
   ));  
@@ -71,13 +72,27 @@ export class IdbStoreEffect {
     switchMap((event) => {
       return new Observable<Action>((subscriber) => {
         if(this.config.synchronizeWhenDocumentHidden || !this.document.hidden) {
+          // our current state
           const state = this.state.value;
-          for(const [key, value] of Object.entries(state as object)) {
-            idbSet(key, value).then(() => {
-              subscriber.next(event);
-              subscriber.complete();    
-            });  
-          }            
+
+          // our keys for each slice
+          const keys = Object.keys(this.reducerManager.currentReducers);
+
+          // create entries for the idb
+          const entries: [string, object][] = [];
+          for(const key of keys) {
+            if((state as Object).hasOwnProperty(key)) {
+              const currentSlice = state[key];
+              entries.push([key, currentSlice]);
+            }
+          }
+
+          // set all state slices in idb
+          idbSetMany(entries).then(() => {
+            subscriber.next(event);
+            subscriber.complete();    
+          });              
+
         } else {
           subscriber.next(event);
           subscriber.complete();
@@ -114,36 +129,31 @@ export class IdbStoreEffect {
     @Inject(idbStoreConfig) private config: IdbStoreConfig,
     private state: State<unknown>
   ){
-
+    console.log(reducerManager);
   }
 
   createSynchronizeAction() {
     return new Observable<Action>((subscriber) => {
 
-      idbKeys().then((keys) => {
-        const promises: Promise<object>[] = [];
-        for(const key of keys) {
-          promises.push(idbGet(key).then((state) => new Promise((resolve) => {
-            resolve({
-              [key as string]: state
-            })
-          })))
-        }
+      // gather what state keys are currently active
+      const keys = Object.keys(this.reducerManager.currentReducers);
 
-        Promise.all(promises).then((stateSlices) => {
-          let totalState = {};
-          for(const stateSlice of stateSlices) {
-              totalState = {
-                ... totalState,
-                ... stateSlice
-              };
+      // load every state slice that should be active
+      idbGetMany(keys).then((stateSlices) => {
+        const totalState: {[index: string]: object} = {};
+        for(let i = 0; i < keys.length; i++) {
+          const stateSlice = stateSlices[i];
+          const key = keys[i];
+
+          // we can have a undefined value incase the stateSlice does not exist in idb
+          if(key && stateSlice) {
+            totalState[key] = stateSlice;
           }
-
-          subscriber.next(synchronizeAction({
-            state: totalState
-          }));
-          subscriber.complete();
-        });
+        }
+        subscriber.next(synchronizeAction({
+          state: totalState
+        }));
+        subscriber.complete();
       });
     })
   }
