@@ -35,9 +35,9 @@ export const defaultConfig: IdbStoreConfig = {
     'visibilityChange',
     'broadcastChannelNotify'
   ],
-  broadcastChannelNotifyThrottleTime: 500,
-  broadcastChannelReceiveDebounceTime: 500,
+  broadcastChannelNotifyThrottleTime: 0,
+  broadcastChannelReceiveDebounceTime: 0,
   skipMessagesWhileHidden: false,
   skipNotifyWhileHidden: true,
-  writeDebounceTime: 500
+  writeDebounceTime: 0
 };
