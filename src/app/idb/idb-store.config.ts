@@ -6,7 +6,8 @@ export interface IdbStoreConfig {
   /**
    * When to perform a synchronize
    */
-  readIdbOn: IdbStoreSynchronize[],
+  synchronizeOnInit: boolean,
+  synchronizeByBroadcast: boolean;
 
   /**
    * Which channel name to use, defaults to 'IdbStoreChannel'
@@ -20,10 +21,8 @@ export const idbStoreConfig = new InjectionToken<IdbStoreConfig>('IdbStoreConfig
 
 export const defaultConfig: IdbStoreConfig = {
   broadcastChannelName: 'IdbStoreChannel',
-  readIdbOn: [
-    'init',
-    'broadcastChannelNotify'
-  ],
+  synchronizeOnInit: true,
+  synchronizeByBroadcast: true,
   writeDebounceTime: 0,
   ignoredStates: ['router']
 };

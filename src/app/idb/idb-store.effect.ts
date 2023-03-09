@@ -1,8 +1,8 @@
 import { Inject, Injectable } from "@angular/core";
-import { Actions, concatLatestFrom, createEffect } from "@ngrx/effects";
-import { Action, ReducerManager, State, Store } from "@ngrx/store";
-import { actionPrefix, initAction, synchronizeAction } from './idb-store.actions';
-import { EMPTY, Observable, debounceTime, exhaustMap, filter, fromEvent, map, skip, startWith, switchMap, take, tap, throttleTime } from "rxjs";
+import { Actions, createEffect, ofType } from "@ngrx/effects";
+import { Action, ReducerManager, State } from "@ngrx/store";
+import { actionPrefix, synchronizeAction } from './idb-store.actions';
+import { Observable, debounceTime, filter, fromEvent, map, skip, switchMap, tap } from "rxjs";
 import { 
   getMany as idbGetMany,
   setMany as idbSetMany 
@@ -16,38 +16,40 @@ type IdbBroadcastEvent = Event & { data: string[]};
 
 @Injectable()
 export class IdbStoreEffect {
+  private readonly channel = new BroadcastChannel(this.config.broadcastChannelName);
+  private oldEntries: IdbStateEntry[];
+
+  // When we do a init we only load active slices, therefore the oldEntries is out of date after a new reducer comes allong
+  readonly oldEntriesSync$  = createEffect(() => {
+    return this.actionSubject.pipe(
+      ofType(synchronizeAction),
+      tap(() => this.oldEntries = this.currentStateEntries())
+    )
+  }, {
+    dispatch: false
+  });
 
   // At init and whenever a feature module is loaded
-  reducersChanged$ = createEffect(() => {
+  readonly reducersChanged$ = createEffect(() => {
     return this.reducerManager.pipe(
-      skip(this.config.readIdbOn.includes('init') ? 0 : 1),
-      switchMap(() => this.createSynchronizeAction())
+      skip(this.config.synchronizeOnInit ? 0 : 1),
+      switchMap(() => this.createSynchronizeAction()),
+      
     )
-  })
-
-  // Page visibility
-  // pageVisibility$ = fromEvent(this.document, 'visibilitychange').pipe(map((event) => !this.document.hidden), startWith(!this.document.hidden));
-  // Broadcast channel
-  channel = new BroadcastChannel(this.config.broadcastChannelName);
-  channelMessages$ = fromEvent<IdbBroadcastEvent>(this.channel, 'message');
-  oldEntries: IdbStateEntry[];
-
-
+  });
 
   // // When notified
-  onNotified$ = createEffect(() => this.channelMessages$.pipe(
+  readonly onNotified$ = createEffect(() => fromEvent<IdbBroadcastEvent>(this.channel, 'message').pipe(
     // do we need to get notified
-    filter(() => this.config.readIdbOn.includes('broadcastChannelNotify')),
+    filter(() => this.config.synchronizeByBroadcast),
     filter((event) => !!event?.data?.length),
     map((event) => event.data),
     switchMap((stateKeys) => {
-      console.log(stateKeys);
       return this.createSynchronizeAction(stateKeys);
     })
   ));  
 
-  // 
-  writeAndNotify$ = createEffect(() => this.actionSubject.pipe(
+  readonly writeAndNotify$ = createEffect(() => this.actionSubject.pipe(
     
     // filter out ngrx actions and our own actions we use for the synchronize
     filter((action) => !action.type.startsWith('@ngrx')),
@@ -90,7 +92,7 @@ export class IdbStoreEffect {
     }),
 
     // if we need to notify by broadcast channel
-    filter(() => this.config.readIdbOn.includes('broadcastChannelNotify')),
+    filter(() => this.config.synchronizeByBroadcast),
 
     // only notify if document is still visible
     filter(() => !this.document.hidden),
@@ -103,8 +105,7 @@ export class IdbStoreEffect {
 
   ), {
     dispatch: false
-  });
- 
+  }); 
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -116,7 +117,7 @@ export class IdbStoreEffect {
     this.oldEntries = this.currentStateEntries();
   }
 
-  createSynchronizeAction(keys?: string[]) {
+  private createSynchronizeAction(keys?: string[]) {
     return new Observable<Action>((subscriber) => {
 
       // gather what state keys are currently active    
@@ -127,8 +128,6 @@ export class IdbStoreEffect {
       } else {
         keysToRead = keys.filter((x) => currentKeys.includes(x))
       }
-
-      console.log(keys, keysToRead, currentKeys);
       
       if(!keysToRead.length) {
         subscriber.complete();
@@ -147,7 +146,6 @@ export class IdbStoreEffect {
           }        
         }
 
-        console.log(totalState);
         subscriber.next(synchronizeAction({
           state: totalState
         }));
@@ -156,7 +154,7 @@ export class IdbStoreEffect {
     })
   }
 
-  currentStateEntries() {
+  private currentStateEntries() {
     const state = this.state.value;
 
     // our keys for each slice
