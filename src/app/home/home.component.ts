@@ -20,6 +20,11 @@ export class HomeComponent {
   increment() {
     this.store.dispatch(increment());
   }
+
+  incrementTwice() {
+    this.store.dispatch(increment());
+    this.store.dispatch(increment());
+  }
  
   decrement() {
     this.store.dispatch(decrement());

@@ -1,9 +1,7 @@
 import { ActionReducer } from "@ngrx/store";
-import { set as idbSet } from "idb-keyval";
-import { initAction, synchronizeAction } from "./idb-store.actions";
-import { IdbStoreConfig } from './idb-store.config';
+import { synchronizeAction } from "./idb-store.actions";
 
-export function idbMetaReducer(config: IdbStoreConfig, document: Document){ 
+export function idbMetaReducer(){ 
   return function (reducer: ActionReducer<unknown>): ActionReducer<unknown> {
     return function(state, action) {     
       let newState;

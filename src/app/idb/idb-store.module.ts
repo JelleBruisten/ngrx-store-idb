@@ -18,8 +18,7 @@ export class IdbStoreModule {
       providers: [
         {
           provide: META_REDUCERS,
-          useFactory: (document: Document) => idbMetaReducer(config, document),
-          deps: [DOCUMENT],
+          useFactory: () => idbMetaReducer(),
           multi: true
         },
         {

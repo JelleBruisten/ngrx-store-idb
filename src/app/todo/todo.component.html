@@ -6,6 +6,7 @@
     {{ todo }} <button (click)="removeTodo(index)">X</button>
   </li>
 </ul>
+<span>Total todos: {{ (todoList$ | async)?.length ?? 0 }} </span><br />
 <textarea #todo></textarea>
 <button (click)="addTodo(todo.value); todo.value = ''">Add</button>
 
