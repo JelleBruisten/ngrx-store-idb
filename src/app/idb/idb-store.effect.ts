@@ -45,6 +45,7 @@ export class IdbStoreEffect {
     filter((event) => !!event?.data?.length),
     map((event) => event.data),
     switchMap((stateKeys) => {
+      console.log(stateKeys);
       return this.createSynchronizeAction(stateKeys);
     })
   ));  
@@ -71,6 +72,8 @@ export class IdbStoreEffect {
               if(oldEntry[1] !== value) {
                 entriesToBeSaved.push([key, value]);
               }
+            } else {
+              entriesToBeSaved.push([key, value]);
             }
           }
         } else {
