@@ -9,6 +9,7 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { IdbStoreModule } from './idb/idb-store.module';
 import { EffectsModule } from '@ngrx/effects';
 import { IdbStoreEffect } from './idb/idb-store.effect';
+import { StoreRouterConnectingModule, routerReducer } from '@ngrx/router-store';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import { IdbStoreEffect } from './idb/idb-store.effect';
     BrowserModule,
     AppRoutingModule,    
     StoreModule.forRoot({
-      counter: counterReducer
+      counter: counterReducer,
+      router: routerReducer,
     }, 
     {
       // metaReducers: metaReducers
@@ -32,7 +34,10 @@ import { IdbStoreEffect } from './idb/idb-store.effect';
       trace: true, //  If set to true, will include stack trace for every dispatched action, so you can see it in trace tab jumping directly to that part of code
       traceLimit: 75, // maximum stack trace frames to be stored (in case trace option was provided as true)
     }),
-    IdbStoreModule.forRoot(),
+    IdbStoreModule.forRoot({
+      ignoredStates: ['router']
+    }),
+    StoreRouterConnectingModule.forRoot(),
   ],
   providers: [],
   bootstrap: [AppComponent]
